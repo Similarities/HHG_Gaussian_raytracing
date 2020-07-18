@@ -13,7 +13,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-
 class Gaussian_second_lens:
     def __init__(self, w0, lambdaL, defocusing_range, Denting, N):
         

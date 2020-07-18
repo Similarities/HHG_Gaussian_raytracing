@@ -227,6 +227,7 @@ class Gaussian_second_lens:
         plt.xlabel='defocusing [mm]'
         plt.ylabel='w_new(z) [mm]'
         plt.legend()
+        plt.show()
         #plt.savefig("caseII_wN_over_N_50nm" +".png",  bbox_inches="tight", dpi = 1000)
         return self.w_new
     
