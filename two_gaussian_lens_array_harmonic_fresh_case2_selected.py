@@ -54,7 +54,6 @@ class GaussianBeamSecondLens:
     def beamwaist_of_z(self):
         self.wz_array[::] = self.w0_fundamental * (1 + (self.z[::] / self.zr) ** 2) ** 0.5
         print('initial beamwaist with 800nm:', self.w0_fundamental)
-        self.plot_results(self.z, self.wz_array, 'fundamental w(z)', 'z mm', 'w(z) mm', 1, None)
         return self.wz_array
 
     def beam_waist_of_z_harmonic(self):
@@ -64,7 +63,6 @@ class GaussianBeamSecondLens:
         self.wz_array_N[::] = self.w0 * (1 + (self.z[::] / zr) ** 2) ** 0.5
         # print('harmonic_number:', self.harmonic_number, 'Ry', zr, 'w0 inital', self.w0, 'for calculation w(z) before lens2')
         name = 'w(N,z) ' + f'{self.harmonic_number}'
-
         self.plot_results(self.z, self.wz_array_N, name, 'z mm', 'w(N,z) initial mm', 1, None)
         return self.wz_array_N
 
