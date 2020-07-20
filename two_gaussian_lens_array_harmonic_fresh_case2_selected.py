@@ -13,7 +13,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-
 class GaussianBeamSecondLens:
     def __init__(self, w0, lambdaL, defocusing_range, denting_depth, harmonic_number):
         self.w0 = w0
@@ -33,176 +32,115 @@ class GaussianBeamSecondLens:
         print(self.zr)
         self.radius_array = np.zeros(len(self.z))
         self.beamdivergence_array = np.zeros(len(self.z))
-        self.wz = float
-        self.f = float
         self.q = self.q_initial()
-        self.N_array = np.arange(1, 32, 1)
-        self.focal_lens_of_wz()
         self.beam_waist_of_z_harmonic()
 
     def q_initial(self):
         self.q = (self.w0 ** 2) * math.pi / (self.lambdaL / self.harmonic_number)
-        # print(self.harmonic_number, self.q)
         return self.q
 
     def rayleigh_length(self):
         # remains Ry as fundamental
-        Ry = math.pi * (self.w0_fundamental ** 2) / (self.lambdaL)
-        print('Rayleigh length: ', Ry, 'for wo', self.w0_fundamental)
-        return Ry
+        ry = math.pi * (self.w0_fundamental ** 2) / (self.lambdaL)
+        print('Rayleigh length: ', ry, 'for wo(fundamental)', self.w0_fundamental)
+        return ry
 
     def diffraction_limit(self):
-        self.w0 = 1500 * self.lambdaL * 2 / (self.harmonic_number * math.pi * 60)
-        #print('diff limit initial focal length for harmonic_number:', self.harmonic_number, 'is:', self.w0)
-        self.q_initial()
+        focal_length_initial = 1500
+        beam_diameter_initial = 60
+        self.w0 = focal_length_initial * self.lambdaL * 2 / (self.harmonic_number * math.pi * beam_diameter_initial)
         return self.w0
 
     def beamwaist_of_z(self):
         self.wz_array[::] = self.w0_fundamental * (1 + (self.z[::] / self.zr) ** 2) ** 0.5
         print('initial beamwaist with 800nm:', self.w0_fundamental)
-        plt.figure(11)
-        plt.plot(self.z, self.wz_array, label='fundamental')
-        plt.legend()
+        self.plot_results(self.z, self.wz_array, 'fundamental w(z)', 'z mm', 'w(z) mm', 1, None)
         return self.wz_array
 
     def beam_waist_of_z_harmonic(self):
         # definition of rayleigh length - which would scale with 1/harmonic_number
         # can be used is not used now
         zr = math.pi * self.w0 ** 2 / (self.lambdaL / self.harmonic_number)
-        #print('calculation of w(z) for harmonic_number:', self.harmonic_number, 'with new Ry(harmonic_number)', zr)
         self.wz_array_N[::] = self.w0 * (1 + (self.z[::] / zr) ** 2) ** 0.5
-        #print('harmonic_number:', self.harmonic_number, 'Ry', zr, 'w0 inital', self.w0, 'for calculation w(z) before lens2')
-        name = 'harmonic_number: ' + f'{self.harmonic_number}'
+        # print('harmonic_number:', self.harmonic_number, 'Ry', zr, 'w0 inital', self.w0, 'for calculation w(z) before lens2')
+        name = 'w(N,z) ' + f'{self.harmonic_number}'
 
-
-        plt.figure(11)
-        plt.plot(self.z, self.wz_array_N, label=name)
-        plt.legend()
-
+        self.plot_results(self.z, self.wz_array_N, name, 'z mm', 'w(N,z) initial mm', 1, None)
         return self.wz_array_N
 
-    def radius_of_lens_static(self):
-        return (4 * (self.denting_depth ** 2) + self.w0_fundamental ** 2) / (8 * self.denting_depth)
-
-    def radius_of_lens_and_beamwaist(self):
+    def radius_of_lens_and_beamwaist_and_intensity(self):
         self.denting_array[::] = self.denting_depth * ((self.w0_fundamental) / (self.wz_array[::]))
         self.radius_array[::] = (4 * (self.denting_array[::] ** 2) + (self.wz_array[::] ** 2)) / (
-                    8 * self.denting_array[::])
+                8 * self.denting_array[::])
         return self.radius_array
 
-    def focal_lens(self, Radius):
-        return Radius / 2
+    def radius_of_lens_and_beamwaist(self):
 
-    def focal_lens_of_wz(self):
-        self.beamwaist_of_z()
-        self.radius_of_lens_and_beamwaist()
-        self.f_array[::] = self.radius_array[::] / 2
-        name1 = 'focalL(w(z)), Dmax:' + str(self.denting_depth)
-        plt.figure(3)
-        plt.plot(self.z, self.f_array, label=name1)
-        plt.xlabel = 'defocusing [mm]'
-        plt.ylabel = 'focal length [mm]'
-        plt.legend()
+        self.radius_array[::] = (4 * (self.denting_depth ** 2) + (self.wz_array[::] ** 2)) / (
+                8 * self.denting_depth)
+        return self.radius_array
+
+    def radius_constant(self):
+        radius_constant = (4 * (self.denting_depth ** 2) + (self.w0_fundamental ** 2)) / (
+                8 * self.denting_depth)
+        return radius_constant
+
+    def choose_focal_length_dependency(self, switch):
+        if switch == 'w0_aperture_and_IL_dependent':
+            self.beamwaist_of_z()
+            self.f_array[::] = self.radius_of_lens_and_beamwaist_and_intensity() * 0.5
+
+        elif switch == 'w0_aperture_dependent':
+            self.beamwaist_of_z()
+            self.f_array[::] = self.radius_of_lens_and_beamwaist() * 0.5
+
+        else:
+            self.f_array[::] = self.radius_constant() * 0.5
+            print('constant focal length', self.f_array[10])
+        self.plot_results(self.z, self.f_array, 'focal length', 'z mm', 'focal length mm', 2, None)
         return self.f_array
-
-    def calculate_new_focal_position_constant_focal_length(self, z):
-        # this often named v 
-        self.f = self.focal_lens(self.radius_of_lens_static())
-        AA = (self.q ** 2 / self.f) - z * (1 - z / self.f)
-        BB = (self.q ** 2 / self.f ** 2) + (1 - z / self.f) ** 2
-        return AA / BB
 
     def new_focal_position_single_value(self, index):
         i = index
         AA = (self.q ** 2 / self.f_array[i]) - self.z[i] * (1 - self.z[i] / self.f_array[i])
         BB = (self.q ** 2 / self.f_array[i] ** 2) + (1 - self.z[i] / self.f_array[i]) ** 2
-        # print('single value for harmonic_number:', self.harmonic_number, 'new focal position', AA/BB)
         return AA / BB
 
     def new_beam_waist_single_value(self, index):
-        # print('initial beamwaist', self.w0, 'for single value and harmonic_number:', self.harmonic_number)
         v_single = self.new_focal_position_single_value(index)
         new = ((1 - v_single / self.f_array[index]) ** 2) + (1 / self.q ** 2) * (
-                    self.z[index] + v_single * (1 - (self.z[index] / self.f_array[index]))) ** 2
+                self.z[index] + v_single * (1 - (self.z[index] / self.f_array[index]))) ** 2
         new = self.w0 * (new ** 0.5)
         return new
 
     def new_divergence_from_w0_new(self, w_new):
         return self.lambdaL / (self.harmonic_number * math.pi * w_new)
 
-    def create_v_array_constant_focal_lens(self):
-        self.f_array[::] = self.f
-        for i in range(0, len(self.z)):
-            self.v_array[i] = self.calculate_new_focal_position_constant_focal_length(self.z[i])
-        name = 'f contst.: ' + str(round(self.f, 3))
-        plt.figure(1)
-        plt.plot(self.z, self.v_array, label=name)
-        plt.xlabel = 'defocusing [mm]'
-        plt.ylabel = 'new focal position [mm]'
-        plt.title('new focal position')
-        plt.legend()
-
-        plt.figure(2)
-        name2 = 'f: ' + str(round(self.f, 3))
-        plt.hlines(self.f, self.z[0], self.z[-1], label=name2)
-        plt.xlabel = 'defocusing [mm]'
-        plt.ylabel = 'focal length [mm]'
-        plt.legend()
-        return self.v_array
-
-    def create_v_array_z_dependent_focal_lens(self):
+    def create_v_array(self):
         for i in range(0, len(self.z)):
             self.v_array[i] = self.new_focal_position_single_value(i)
-        name1 = 'f(w(z)) for Dmax: ' + str(self.denting_depth) + 'harmonic_number: ' + str(self.harmonic_number)
+        name1 = 'v(w(z)) for Dmax: ' + str(self.denting_depth) + 'harmonic_number: ' + str(self.harmonic_number)
         name2 = 'f(w(z)) for Dmax: ' + str(self.denting_depth)
-        plt.figure(1)
-        plt.plot(self.z, self.v_array, label=name1)
-        plt.xlabel = 'defocusing [mm]'
-        plt.ylabel = 'new focal position [mm]'
-        plt.legend()
-        plt.savefig("caseII_zN_over_N_50nm" + ".png", bbox_inches="tight", dpi=1000)
-        plt.figure(2)
-        plt.plot(self.z, self.f_array, label=name2)
-        plt.ylabel = 'focal lens [mm]'
-        plt.xlabel = 'defocusing [mm]'
-
-        plt.legend()
+        self.plot_results(self.z, self.v_array, name1, 'z mm', 'new focal position mm', 5, None)
         # plt.savefig("caseII_f_over_N_50nm" +".png",  bbox_inches="tight", dpi = 1000)
         return self.v_array
 
-    def calculate_new_beamwaist(self):
-
+    def new_beamwaist(self):
         print('for harmonic_number: ', self.harmonic_number, 'we start with a beamwaist for lens 1 of about:', self.w0)
-        self.create_v_array_z_dependent_focal_lens()
+        self.create_v_array()
         # print(self.f, 'insert in wnew')
         self.w_new[::] = ((1 - self.v_array[::] / self.f_array[::]) ** 2) + (1 / self.q ** 2) * (
-                    self.z[::] + self.v_array[::] * (1 - (self.z[::] / self.f_array[::]))) ** 2
+                self.z[::] + self.v_array[::] * (1 - (self.z[::] / self.f_array[::]))) ** 2
         self.w_new[::] = self.w0 * (self.w_new[::] ** 0.5)
-
-        plt.figure(4)
-
-        name = 'new beamwaist of f(w(z)), D0: ' + str(self.denting_depth) + 'harmonic_number: ' + str(self.harmonic_number)
-        plt.plot(self.z, self.w_new, label=name)
-        plt.xlabel = 'defocusing [mm]'
-        plt.ylabel = 'w_new(z) [mm]'
-        plt.legend()
-        #plt.show()
-        # plt.savefig("caseII_wN_over_N_50nm" +".png",  bbox_inches="tight", dpi = 1000)
+        name = 'w(z) for N:' + str(self.harmonic_number)
+        self.plot_results(self.z, self.w_new, name, 'z mm', 'w(z)', 4, None)
         return self.w_new
 
-    def switch_sign(self, var):
-        return -var
-
     def resulting_beam_divergence(self):
+        self.new_beamwaist()
         self.beamdivergence_array[::] = (self.lambdaL / (self.harmonic_number * math.pi * self.w_new[::]))
         name = 'Theta Dmax:' + str(self.denting_depth) + 'harmonic_number: ' + str(self.harmonic_number)
-        plt.figure(6)
-        plt.plot(self.z, self.beamdivergence_array, label=name)
-        plt.yscale('log')
-        # plt.ylim(1,6)
-        plt.xlabel = 'defocusing [mm]'
-        plt.ylabel = '[rad]'
-        plt.legend()
+        self.plot_results(self.z, self.beamdivergence_array, name, 'z mm', 'w(N,z)', 6, None)
         # plt.savefig("caseII_Theta_over_N_50nm" +".png",  bbox_inches="tight", dpi = 1000)
 
     def resulting_divergence_over_N(self, z):
@@ -210,30 +148,18 @@ class GaussianBeamSecondLens:
         index = list(zip(*np.where(self.z >= z)))
         index = index[0]
         # print(index, self.z[index])
-        result_w0_N = np.zeros(len(self.N_array))
-        result_div_N = np.zeros(len(self.N_array))
-        for x in range(0, len(self.N_array)):
-            self.harmonic_number = self.N_array[x]
+        harmonic_number_array = np.arange(1, 32, 1)
+        result_w0_N = np.zeros(len(harmonic_number_array))
+        result_div_N = np.zeros(len(harmonic_number_array))
+        for x in range(0, len(harmonic_number_array)):
+            self.harmonic_number = harmonic_number_array[x]
             self.q_initial()
             result_w0_N[x] = self.new_beam_waist_single_value(index)
             result_div_N[x] = self.new_divergence_from_w0_new(result_w0_N[x])
         name1 = 'z: ' + str(z) + '[mm]  lens+'
-
-        plt.figure(10)
-        plt.plot(self.N_array, result_w0_N, label=name1 + 'w(harmonic_number)')
-        plt.xlabel = 'harmonic_number'
-        plt.ylabel = 'w0(harmonic_number)* in [mm]'
-        plt.legend()
-        plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-
-        plt.figure(9)
-        plt.plot(self.N_array, result_div_N, label=name1 + 'div detctor', marker='.')
-        plt.xlabel = 'harmonic_number'
-        plt.ylabel = 'div in [rad]'
-        plt.legend()
-        # plt.yscale ('log')
-        # plt.ylim(0.001,0.006)
-
+        self.plot_results(harmonic_number_array, result_w0_N, name1, 'N', 'w0(N) mm', 10, marker='.')
+        # plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+        self.plot_results(harmonic_number_array, result_div_N, name1, 'N', 'Theta(N) mm', 9, marker='.')
         # zip the 2 arrays to get the exact coordinates
 
     # index = list(zip(index[0])
@@ -245,46 +171,47 @@ class GaussianBeamSecondLens:
             N_list[x] = 1 + x
             N_diffraction_limit[x] = (60. / 1500.) / (1 + x)
 
-        plt.figure(9)
-        plt.scatter(N_list, N_diffraction_limit, marker="o", color="c", label="Theta_L/harmonic_number")
-        plt.hlines(0.007, 0, 30, label="detector limit")
-        plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+        self.plot_results(N_list, N_diffraction_limit, 'Theta(L)/N', 'N', 'Theta rad', 9, 'o')
 
         # plt.savefig("20190123_divergence_mrad_halfangle_and_theo" +".png",  bbox_inches="tight", dpi = 1000)
 
+    def plot_case_vincenti(self):
+        N_list = np.arange(1, 30, 1)
+        N_div_vincenti = np.zeros([29, 1])
+        denting_part = (4 * math.pi * self.denting_depth) ** 2
+        for x in range(0, 30 - 1):
+            # halfangle
+            N_list[x] = 1 + x
+            N_div_vincenti[x] = (1 / (math.pi * self.w0_fundamental)) * (
+                        denting_part + (self.lambdaL / (1 + x)) ** 2) ** 0.5
+        self.plot_results(N_list, N_div_vincenti, 'Theta(L)/N vincenti model', 'N', 'Theta rad', 9, 'o')
 
+    def plot_results(self, x, y, label, name_x, name_y, figure_number, marker):
+        plt.figure(figure_number)
+        plt.plot(x, y, label=label, marker=marker)
+        plt.xlabel = name_x
+        plt.ylabel = name_y
+        plt.legend()
+        plt.get_figlabels()
+
+
+# choose the dependency of the focal length function : 'w0_aperture_and_IL_dependent', 'w0_aperture_dependent' or False
 Test = GaussianBeamSecondLens(0.012, 0.0008, 5, 0.00005, 1)
-# Test.beamwaist_of_z()
-# Test.Radius_of_lens_and_beamwaist()
-# Test.create_v_array_z_dependent_focal_lens()
-# Test.q_harmonic()
-Test.calculate_new_beamwaist()
+Test.choose_focal_length_dependency('False')
 Test.resulting_beam_divergence()
+Test.resulting_divergence_over_N(-2.)
+Test.resulting_divergence_over_N(0.)
+Test.resulting_divergence_over_N(-1.)
+Test.resulting_divergence_over_N(1.)
+Test.plot_diffraction_limit()
 
-Test2 = GaussianBeamSecondLens(0.012, 0.0008, 5, 0.00005, 25)
-# Test.q_harmonic()
-
-Test2.calculate_new_beamwaist()
+Test2 = GaussianBeamSecondLens(0.012, 0.0008, 5, 0.00005, 32)
+Test2.choose_focal_length_dependency('False')
 Test2.resulting_beam_divergence()
-
-Test3 = GaussianBeamSecondLens(0.012, 0.0008, 5, 0.00005, 2)
-# Test.q_harmonic()
-Test3.calculate_new_beamwaist()
-Test3.resulting_beam_divergence()
-
-Test3.resulting_divergence_over_N(0.0)
-Test3.resulting_divergence_over_N(-0.5)
-# Test3.resulting_divergence_over_N(2.0)
-Test3.resulting_divergence_over_N(-1.0)
-Test3.resulting_divergence_over_N(-2.0)
-Test3.resulting_divergence_over_N(-2.5)
-Test3.plot_diffraction_limit()
-#plt.savefig("caseII_div_over_N_50nm" + ".png", bbox_inches="tight", dpi=1000)
-
-plt.legend()
-plt.xlim(1, 28)
-
-plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-#plt.show()
-
-# Test3.resulting_divergence_over_N(2.5)
+Test2 = GaussianBeamSecondLens(0.012, 0.0008, 5, 0.00005, 12)
+Test2.choose_focal_length_dependency('False')
+Test2.resulting_beam_divergence()
+Test2.plot_case_vincenti()
+# plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+# plt.savefig("caseII_div_over_N_50nm" + ".png", bbox_inches="tight", dpi=1000)
+plt.show()
