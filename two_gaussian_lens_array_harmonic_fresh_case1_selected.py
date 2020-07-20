@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 class Gaussian_second_lens:
     def __init__(self, w0, lambdaL, defocusing_range, Denting, N):
         
-        print('xxxxxxxx run with Denting: ' +str(Denting) + 'xxxxxxx')
+        print('xxxxxxxx run with denting_depth: ' +str(Denting) + 'xxxxxxx')
         self.w0 = float
         #FWHM to 1/e
         self.w0_fundamental = w0
@@ -44,7 +44,7 @@ class Gaussian_second_lens:
 
         self.beam_waist_of_z_harmonic()
         self.q = self.q_initial()
-        print(self.w0, 'w0 difflimited lens1 of harmonic N:', self.N)
+        print(self.w0, 'w0 difflimited lens1 of harmonic harmonic_number:', self.N)
         
         
         
@@ -53,7 +53,7 @@ class Gaussian_second_lens:
 
 
         self.q = (self.w0**2)*math.pi/(self.lambdaL/self.N)
-        #print(self.N, self.q)
+        #print(self.harmonic_number, self.q)
         return self.q
     
     def Rayleigh_length(self): 
@@ -67,9 +67,9 @@ class Gaussian_second_lens:
     def diffraction_limit(self):
         #1500 = f, Diameter beam = 120mm - w0= f*lambda/(Pi*D/2)
         self.w0 = self.w0_fundamental/self.N
-        #1500*self.lambdaL*2/(self.N*math.pi*120)
+        #1500*self.lambdaL*2/(self.harmonic_number*math.pi*120)
         
-        #print('diff limit initial focal length', self.w0, 'for N:', self.N)
+        #print('diff limit initial focal length', self.w0, 'for harmonic_number:', self.harmonic_number)
         self.q_initial()
         return self.w0
     
@@ -81,7 +81,7 @@ class Gaussian_second_lens:
         #print('initial beamwaist with 800nm:', self.w0_fundamental)
         
        # plt.figure(11)
-        #plt.plot(self.z, self.wz_array, label = 'fundamental plot 11')
+        #plt.plot(self.z, self.wz, label = 'fundamental plot 11')
         #plt.legend()
         
 
@@ -95,9 +95,9 @@ class Gaussian_second_lens:
 
         self.wz_array_N[::] = 1.9*self.w0*(1+(self.z[::]/zr)**2)**0.5
         
-        print('N:', self.N, 'Ry', zr, 'w0 inital', self.w0,'for calculation w(z) before lens2')
+        print('harmonic_number:', self.N, 'Ry', zr, 'w0 inital', self.w0,'for calculation w(z) before lens2')
 
-        name = 'N: ' + f'{self.N}'
+        name = 'harmonic_number: ' + f'{self.N}'
         
         plt.figure(11)
         plt.plot(self.z, self.wz_array_N, label = name)
@@ -199,7 +199,7 @@ class Gaussian_second_lens:
 
             self.v_array[i] = self.calculate_new_focal_position_beamwaist_dependent(i)
 
-        name1 = 'f(w(z)) for Dmax: ' +str(self.Denting) + 'N: ' + str(self.N)
+        name1 = 'f(w(z)) for Dmax: ' +str(self.Denting) + 'harmonic_number: ' + str(self.N)
         name2 = 'f(w(z)) for Dmax: ' +str(self.Denting)
         
            
@@ -219,7 +219,7 @@ class Gaussian_second_lens:
     
     
     def calculate_new_beamwaist(self):
-        print('for N: ', self.N, 'we start with a beamwaist for lens 1 of about:' , self.w0)
+        print('for harmonic_number: ', self.N, 'we start with a beamwaist for lens 1 of about:' , self.w0)
         self.create_v_array_z_dependent_focal_lens()
         
             #print(self.f, 'insert in wnew')
@@ -227,7 +227,7 @@ class Gaussian_second_lens:
         self.w_new[::] =  self.w0*(self.w_new[::]**0.5)
         
         plt.figure(4)
-        name = 'new beamwaist of f(w(z)), D0: ' +str(self.Denting) + 'N: ' + str(self.N)
+        name = 'new beamwaist of f(w(z)), D0: ' +str(self.Denting) + 'harmonic_number: ' + str(self.N)
         plt.plot(self.z, self.w_new, label = name)
         plt.xlabel='defocusing [mm]'
         plt.ylabel='w_new(z) [mm]'
@@ -244,7 +244,7 @@ class Gaussian_second_lens:
         
         self.beamdivergence_array[::] = (self.lambdaL/(self.N *math.pi*self.w_new[::]))
         
-        name = 'Theta Dmax:' +str(self.Denting) + 'N: ' + str(self.N)
+        name = 'Theta Dmax:' +str(self.Denting) + 'harmonic_number: ' + str(self.N)
         
         plt.figure(6)
         plt.plot(self.z, self.beamdivergence_array, label = name)
@@ -285,16 +285,16 @@ class Gaussian_second_lens:
         
             
         plt.figure(10)
-        plt.plot(self.N_array, result_w0_N, label = name1+'w(N)')
-        plt.xlabel='N'
-        plt.ylabel='w0(N)* in [mm]'
+        plt.plot(self.N_array, result_w0_N, label = name1+'w(harmonic_number)')
+        plt.xlabel='harmonic_number'
+        plt.ylabel='w0(harmonic_number)* in [mm]'
         plt.legend()
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 
         
         plt.figure(9)
         plt.plot(self.N_array, result_div_N, label = name1 + 'div detctor', marker = '.')
-        plt.xlabel = 'N'
+        plt.xlabel = 'harmonic_number'
         plt.ylabel='div in [rad]'
         plt.legend()
         plt.yscale ('log')
@@ -316,7 +316,7 @@ class Gaussian_second_lens:
 
                 
         plt.figure(9)
-        plt.scatter(N_list, N_diffraction_limit, marker = "o", color ="c", label = "Theta_L/N")
+        plt.scatter(N_list, N_diffraction_limit, marker = "o", color ="c", label = "Theta_L/harmonic_number")
         
         plt.hlines(0.007,0,30,label="detector limit")
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
