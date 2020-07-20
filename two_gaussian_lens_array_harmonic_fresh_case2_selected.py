@@ -13,6 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+
 class GaussianBeamSecondLens:
     def __init__(self, w0, lambdaL, defocusing_range, denting_depth, harmonic_number):
         self.w0 = w0
@@ -72,6 +73,7 @@ class GaussianBeamSecondLens:
         self.wz_array_N[::] = self.w0 * (1 + (self.z[::] / zr) ** 2) ** 0.5
         #print('harmonic_number:', self.harmonic_number, 'Ry', zr, 'w0 inital', self.w0, 'for calculation w(z) before lens2')
         name = 'harmonic_number: ' + f'{self.harmonic_number}'
+
 
         plt.figure(11)
         plt.plot(self.z, self.wz_array_N, label=name)
@@ -169,6 +171,7 @@ class GaussianBeamSecondLens:
         return self.v_array
 
     def calculate_new_beamwaist(self):
+
         print('for harmonic_number: ', self.harmonic_number, 'we start with a beamwaist for lens 1 of about:', self.w0)
         self.create_v_array_z_dependent_focal_lens()
         # print(self.f, 'insert in wnew')
@@ -177,6 +180,7 @@ class GaussianBeamSecondLens:
         self.w_new[::] = self.w0 * (self.w_new[::] ** 0.5)
 
         plt.figure(4)
+
         name = 'new beamwaist of f(w(z)), D0: ' + str(self.denting_depth) + 'harmonic_number: ' + str(self.harmonic_number)
         plt.plot(self.z, self.w_new, label=name)
         plt.xlabel = 'defocusing [mm]'

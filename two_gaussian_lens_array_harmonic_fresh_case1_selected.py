@@ -81,7 +81,7 @@ class Gaussian_second_lens:
         #print('initial beamwaist with 800nm:', self.w0_fundamental)
         
        # plt.figure(11)
-        #plt.plot(self.z, self.wz_array, label = 'fundamental plot 11')
+        #plt.plot(self.z, self.wz, label = 'fundamental plot 11')
         #plt.legend()
         
 
