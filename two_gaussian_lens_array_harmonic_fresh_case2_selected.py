@@ -2,7 +2,7 @@
 """
 Created on Tue Apr  7 10:17:34 2020
 
-@author: similiarities
+@author: similarities
 """
 # Gaussian beam profile (focused by lens 1) which passes lens2 close to 
 # focal position. The resulting beamwaist and new focal position 
@@ -26,7 +26,7 @@ class GaussianBeamSecondLens:
         self.denting_depth = denting_depth
         self.f_array = np.zeros(len(self.z))
         self.wz_array = np.zeros(len(self.z))
-        self.wz_array_N = np.zeros(len(self.z))
+        self.wz_array_harmonic_number = np.zeros(len(self.z))
         self.denting_array = np.zeros(len(self.z))
         self.zr = self.rayleigh_length()
         print(self.zr)
@@ -53,7 +53,7 @@ class GaussianBeamSecondLens:
 
     def beamwaist_of_z(self):
         self.wz_array[::] = self.w0_fundamental * (1 + (self.z[::] / self.zr) ** 2) ** 0.5
-        print('initial beamwaist with 800nm:', self.w0_fundamental)
+        print('initial beamwaist with 800nm:', self.w0_fundamental
         return self.wz_array
 
     def beam_waist_of_z_harmonic(self):
@@ -100,6 +100,7 @@ class GaussianBeamSecondLens:
 
     def new_focal_position_single_value(self, index):
         i = index
+        self.q_initial()
         AA = (self.q ** 2 / self.f_array[i]) - self.z[i] * (1 - self.z[i] / self.f_array[i])
         BB = (self.q ** 2 / self.f_array[i] ** 2) + (1 - self.z[i] / self.f_array[i]) ** 2
         return AA / BB
@@ -142,7 +143,9 @@ class GaussianBeamSecondLens:
         # plt.savefig("caseII_Theta_over_N_50nm" +".png",  bbox_inches="tight", dpi = 1000)
 
     def resulting_divergence_over_N(self, z):
+
         # intensity (position) dependent focal length lens 2
+
         index = list(zip(*np.where(self.z >= z)))
         index = index[0]
         # print(index, self.z[index])
@@ -152,15 +155,17 @@ class GaussianBeamSecondLens:
         for x in range(0, len(harmonic_number_array)):
             self.harmonic_number = harmonic_number_array[x]
             self.q_initial()
+
             result_w0_N[x] = self.new_beam_waist_single_value(index)
+            print(result_w0_N[x], 'w0 new for z', self.z[x], 'N:', self.harmonic_number)
+
             result_div_N[x] = self.new_divergence_from_w0_new(result_w0_N[x])
-        name1 = 'z: ' + str(z) + '[mm]  lens+'
+        name1 = 'z: ' + str(z) + '[mm]'
         self.plot_results(harmonic_number_array, result_w0_N, name1, 'N', 'w0(N) mm', 10, marker='.')
         # plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-        self.plot_results(harmonic_number_array, result_div_N, name1, 'N', 'Theta(N) mm', 9, marker='.')
+        self.plot_results(harmonic_number_array, result_div_N, 'div', 'N', 'Theta(N) mm', 9, marker='.')
         # zip the 2 arrays to get the exact coordinates
 
-    # index = list(zip(index[0])
     def plot_diffraction_limit(self):
         N_list = np.arange(1, 30, 1)
         N_diffraction_limit = np.zeros([29, 1])
@@ -168,10 +173,10 @@ class GaussianBeamSecondLens:
             # halfangle
             N_list[x] = 1 + x
             N_diffraction_limit[x] = (60. / 1500.) / (1 + x)
-
         self.plot_results(N_list, N_diffraction_limit, 'Theta(L)/N', 'N', 'Theta rad', 9, 'o')
 
-        # plt.savefig("20190123_divergence_mrad_halfangle_and_theo" +".png",  bbox_inches="tight", dpi = 1000)
+        plt.hlines(0.007, 0, 30, label="detector limit")
+        # plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 
     def plot_case_vincenti(self):
         N_list = np.arange(1, 30, 1)
@@ -192,9 +197,9 @@ class GaussianBeamSecondLens:
         plt.legend()
         plt.get_figlabels()
 
-
 # choose the dependency of the focal length function : 'w0_aperture_and_IL_dependent', 'w0_aperture_dependent' or False
 Test = GaussianBeamSecondLens(0.012, 0.0008, 5, 0.00005, 1)
+
 Test.choose_focal_length_dependency('False')
 Test.resulting_beam_divergence()
 Test.resulting_divergence_over_N(-2.)
@@ -202,6 +207,7 @@ Test.resulting_divergence_over_N(0.)
 Test.resulting_divergence_over_N(-1.)
 Test.resulting_divergence_over_N(1.)
 Test.plot_diffraction_limit()
+
 
 Test2 = GaussianBeamSecondLens(0.012, 0.0008, 5, 0.00005, 32)
 Test2.choose_focal_length_dependency('False')
