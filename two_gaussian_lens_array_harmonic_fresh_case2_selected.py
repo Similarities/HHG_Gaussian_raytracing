@@ -85,6 +85,7 @@ class GaussianBeamSecondLens:
     def diffraction_limit(self):
         focal_length_initial = 1500
         beam_diameter_initial = 60
+
         self.w0 = focal_length_initial * self.lambdaL / (self.harmonic_number * math.pi * beam_diameter_initial)
         return self.w0
 
@@ -141,8 +142,11 @@ class GaussianBeamSecondLens:
         self.plot_results(self.z, self.f_array, self.description, 'z mm', 'focal length mm', 2, None)
         return self.f_array, self.description
 
+
+
     def new_focal_position_single_value(self, index):
         i = index
+        self.q_initial()
         AA = (self.q ** 2 / self.f_array[i]) - self.z[i] * (1 - self.z[i] / self.f_array[i])
         BB = (self.q ** 2 / self.f_array[i] ** 2) + (1 - self.z[i] / self.f_array[i]) ** 2
         return AA / BB
@@ -184,7 +188,9 @@ class GaussianBeamSecondLens:
         # plt.savefig("caseII_Theta_over_N_50nm" +".png",  bbox_inches="tight", dpi = 1000)
 
     def resulting_divergence_over_N(self, z):
+
         # intensity (position) dependent focal length lens 2
+
         index = list(zip(*np.where(self.z >= z)))
         index = index[0]
         # print(index, self.z[index])
@@ -202,7 +208,6 @@ class GaussianBeamSecondLens:
         self.plot_results(harmonic_number_array, result_div_N, name1, 'N', 'Theta(N) mm', 9, marker='.')
         # zip the 2 arrays to get the exact coordinates
 
-    # index = list(zip(index[0])
     def plot_diffraction_limit(self):
         N_list = np.arange(1, 30, 1)
         N_diffraction_limit = np.zeros([29, 1])
@@ -210,7 +215,7 @@ class GaussianBeamSecondLens:
             # halfangle
             N_list[x] = 1 + x
             N_diffraction_limit[x] = (60. / 1500.) / (1 + x)
-
+        self.plot_results(N_list, N_diffraction_limit, 'Theta(L)/N', 'N', 'Theta rad', 9, 'o')
         self.plot_results(N_list, N_diffraction_limit, 'Theta(L)/N', 'N', 'Theta rad', 9, 'o')
 
         # plt.savefig("20190123_divergence_mrad_halfangle_and_theo" +".png",  bbox_inches="tight", dpi = 1000)
@@ -224,6 +229,7 @@ class GaussianBeamSecondLens:
             N_list[x] = 1 + x
             N_div_vincenti[x] = (1 / (math.pi * self.w0_fundamental)) * (
                     denting_part + (self.lambdaL / (1 + x)) ** 2) ** 0.5
+
         self.plot_results(N_list, N_div_vincenti, 'Theta(L)/N vincenti model', 'N', 'Theta rad', 9, 'o')
 
     def plot_results(self, x, y, label, name_x, name_y, figure_number, marker):
@@ -233,6 +239,7 @@ class GaussianBeamSecondLens:
         plt.ylabel = name_y
         plt.legend()
         plt.get_figlabels()
+
 
 #GaussianBeamSecondLens(focal_radius[1/e in mm], wavelength_fundamental [mm], defocusing_range [mm], denting in [mm], harmonic_number [int], case selection [1 or 2])
 # case_selection: select:1 for initial beamwaist scales with 1/harmonic number, select 2: for beamwaist of harmonic is just beamwaist fundamental (scales sourcesize 1/harmonic_number)
@@ -245,6 +252,7 @@ Test.resulting_divergence_over_N(0.)
 Test.resulting_divergence_over_N(-1.)
 Test.resulting_divergence_over_N(1.)
 Test.plot_diffraction_limit()
+
 
 Test2 = GaussianBeamSecondLens(0.012, 0.0008, 5, 0.00005, 15, 2)
 Test2.choose_focal_length_dependency('w0_aperture_and_IL_dependent')

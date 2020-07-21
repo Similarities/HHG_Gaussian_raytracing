@@ -258,46 +258,6 @@ class Gaussian_second_lens:
         
         
         
-    def resulting_divergence_over_N(self, z):
-        
-        #intensity (position) dependent focal length lens 2
- 
-        index = list(zip(*np.where(self.z >= z)))
-        index = index[0]
-        #print(index, self.z[index])
-        result_w0_N = np.zeros(len(self.N_array))
-        result_div_N = np.zeros(len(self.N_array))
-        
-        for x in range(0,len(self.N_array)):
-            
-            
-            
-            self.N = self.N_array[x]
-            self.diffraction_limit()
-            self.q_initial()
-            
-
-            result_w0_N[x] = self.calulate_beam_waist_single_value(index)
-
-            result_div_N[x] =self.calculate_div_from_w0_new(result_w0_N[x])
-            
-        name1 = 'z: ' + str(z) +'[mm]  lens+' 
-        
-            
-        plt.figure(10)
-        plt.plot(self.N_array, result_w0_N, label = name1+'w(harmonic_number)')
-        plt.xlabel='harmonic_number'
-        plt.ylabel='w0(harmonic_number)* in [mm]'
-        plt.legend()
-        plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-
-        
-        plt.figure(9)
-        plt.plot(self.N_array, result_div_N, label = name1 + 'div detctor', marker = '.')
-        plt.xlabel = 'harmonic_number'
-        plt.ylabel='div in [rad]'
-        plt.legend()
-        plt.yscale ('log')
 
 
         
