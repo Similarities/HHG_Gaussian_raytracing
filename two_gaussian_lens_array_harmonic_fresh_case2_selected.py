@@ -110,6 +110,12 @@ class GaussianBeamSecondLens:
                 8 * self.denting_array[::])
         return self.radius_array
 
+    def radius_of_lens_and_beamwaist_and_hole_boring(self):
+        self.denting_array[::] = self.denting_depth * ((self.w0_fundamental) / (self.wz_fundamental[::])) ** 0.5
+        self.radius_array[::] = (4 * (self.denting_array[::] ** 2) + (self.wz_fundamental[::] ** 2)) / (
+                8 * self.denting_array[::])
+        return self.radius_array
+
     def radius_of_lens_and_beamwaist(self):
         print(self.denting_depth)
         self.radius_array[::] = (4 * pow(self.denting_depth, 2) + pow(self.wz_fundamental[::], 2)) \
@@ -126,20 +132,27 @@ class GaussianBeamSecondLens:
             self.beamwaist_of_z()
             self.f_array[::] = self.radius_of_lens_and_beamwaist_and_intensity() * 0.5
             print(np.min(self.f_array), 'minimum focal length apterure and intensity dependent')
-            self.description = self.description + ' ~w(Z)^3'
+            self.description = 'f' + self.description + ' ~w(Z)^3'
 
         elif switch == 'w0_aperture_dependent':
             self.beamwaist_of_z()
             self.f_array[::] = self.radius_of_lens_and_beamwaist() * 0.5
             print(np.min(self.f_array), 'minimum focal length apterture w(z) dependent')
-            self.description = self.description + ' ~w(z)^2'
+            self.description = 'f' + self.description + ' ~w(z)^2'
+
+        elif switch == 'w0_aperture_and_hole_boring':
+            self.beamwaist_of_z()
+            self.f_array[::] = self.radius_of_lens_and_beamwaist_and_hole_boring() * 0.5
+            self.description = 'f:'+ self.description + 'w(z)^2 + HB'
+            
 
         else:
             self.f_array[::] = self.radius_constant() * 0.5
             print('constant focal length', self.f_array[10])
-            self.description = self.description + ' f constant'
+            self.description = 'f:' + self.description + ' f constant'
 
         self.plot_results(self.z, self.f_array, self.description, 'z mm', 'focal length mm', 2, None)
+        plt.yscale('log')
         return self.f_array, self.description
 
 
@@ -243,9 +256,9 @@ class GaussianBeamSecondLens:
 
 #GaussianBeamSecondLens(focal_radius[1/e in mm], wavelength_fundamental [mm], defocusing_range [mm], denting in [mm], harmonic_number [int], case selection [1 or 2])
 # case_selection: select:1 for initial beamwaist scales with 1/harmonic number, select 2: for beamwaist of harmonic is just beamwaist fundamental (scales sourcesize 1/harmonic_number)
-# choose the dependency of the focal length function : 'w0_aperture_and_IL_dependent', 'w0_aperture_dependent' or False
+# choose the dependency of the focal length function : 'w0_aperture_and_IL_dependent', 'w0_aperture_dependent' or 'w0_aperture_and_hole_boring' or False
 Test = GaussianBeamSecondLens(0.012, 0.0008, 5, 0.00005, 12, 2)
-Test.choose_focal_length_dependency('w0_aperture_and_IL_dependent')
+Test.choose_focal_length_dependency('w0_aperture_dependent')
 Test.resulting_beam_divergence()
 Test.resulting_divergence_over_N(-2.)
 Test.resulting_divergence_over_N(0.)
@@ -254,11 +267,11 @@ Test.resulting_divergence_over_N(1.)
 Test.plot_diffraction_limit()
 
 
-Test2 = GaussianBeamSecondLens(0.012, 0.0008, 5, 0.00005, 15, 2)
+Test2 = GaussianBeamSecondLens(0.012, 0.0008, 5, 0.00005, 25, 2)
 Test2.choose_focal_length_dependency('w0_aperture_and_IL_dependent')
 Test2.resulting_beam_divergence()
-Test2 = GaussianBeamSecondLens(0.012, 0.0008, 5, 0.00005, 32, 2)
-Test2.choose_focal_length_dependency('w0_aperture_and_IL_dependent')
+Test2 = GaussianBeamSecondLens(0.012, 0.0008, 5, 0.00005, 25, 2)
+Test2.choose_focal_length_dependency('w0_aperture_and_hole_boring')
 Test2.resulting_beam_divergence()
 Test2.plot_case_vincenti()
 # plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
