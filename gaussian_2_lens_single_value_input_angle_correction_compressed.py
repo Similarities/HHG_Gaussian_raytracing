@@ -2,12 +2,17 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
+#git not upstream!
+# corrected geometric radius of mirror curvature equation
+
 
 class GaussianSecondLensSingleValue:
     def __init__(self, w0, lambdaL, defocusing_range, denting_depth):
 
         print('xxxxxxxx run with denting_depth: ' + str(denting_depth) + 'xxxxxxx')
         self.w0 = w0
+        print("input angle in pi", np.cos(35/180*np.pi))
+        print("increase of w0 by angle", 1/(np.cos(35/180*np.pi)))
         self.w0_fundamental = w0
         self.harmonic_number = 1
         self.lambdaL = lambdaL  # fundamental!!!
@@ -17,8 +22,13 @@ class GaussianSecondLensSingleValue:
         self.zr = self.rayleigh_length()
         self.denting_depth = denting_depth
         self.wz = self.beam_waist_of_z_value(self.z)
-        #print(self.wz)
-        self.f = self.choose_f_dependency(True)
+
+        # focal length can be caluculated via different approaches:
+        # " " = constant (determined by denting depth, geometrical and independent of defocusing)
+        # "wzIL" denting depth is function of a0~ (IL(wz))**0.5 (compressed pulse)
+        # "wzILtauChirp" denting depth is a function of a0 ~ (IL(wz, tauL))**0.5
+        # -> pulse duration correction: defined in self.radius_of_lens_and_beamwaist_and_intensity_and_chirp()
+        self.f = self.choose_f_dependency("wzILtauChirp")
         #print(self.f, 'focal length for z:', self.z)
         self.q = self.q_initial()
         self.harmonic_number_array = np.arange(1, 32, 1)
@@ -31,7 +41,8 @@ class GaussianSecondLensSingleValue:
 
     def rayleigh_length(self):
         # remains Ry as fundamental
-        ry = math.pi * (self.w0_fundamental ** 2) / (self.lambdaL)
+        M2 = 2.2 # from experimental values
+        ry = math.pi * (self.w0_fundamental ** 2)*M2/ (self.lambdaL)
         print('Rayleigh length: ', ry, 'for wo', self.w0_fundamental)
         return ry
 
@@ -43,11 +54,11 @@ class GaussianSecondLensSingleValue:
     def test_beam_waist(self):
         test = np.linspace(-5,5,1000)
         wz = np.zeros([len(test)])
-
         wz[::] = self.beam_waist_of_z_value(test[::])
-
         plt.figure(1)
-        plt.plot(test,wz)
+        plt.plot(test,wz, label = "w(z) with M2 ")
+        plt.legend()
+        #plt.show()
 
 
     def beam_waist_of_z_harmonic(self):
@@ -58,11 +69,21 @@ class GaussianSecondLensSingleValue:
         return wz_harmonic
 
     def radius_of_lens(self):
-        return (4 * (self.denting_depth ** 2) + self.w0_fundamental ** 2) / (8 * self.denting_depth)
+        return (4 * (self.denting_depth ** 2) + (self.w0_fundamental/np.cos(35/(np.pi*180))*2) ** 2) / (8 * self.denting_depth)
 
     def radius_of_lens_and_beamwaist(self):
         denting_z = self.denting_depth * (self.w0_fundamental / self.wz)
-        radius = (4 * (denting_z ** 2) + (self.wz ** 2)) / (8 * denting_z)
+        radius = (4 * (denting_z ** 2) + ((self.wz/np.cos(35/(np.pi*180))*2) ** 2)) / (8 * denting_z)
+        return radius
+
+    def radius_of_lens_and_beamwaist_and_intensity_and_chirp(self):
+        #assumes denting ~ a0 ~ (IL ** 0.5) ~ (w0**2/wz**2)**0.5
+        # factor = (tauL/tauChirped)
+        factor = 1
+        print("intensity reduction by chirp:", factor**2)
+        denting_z = (self.denting_depth * ((self.w0_fundamental) / ((self.wz))) *factor)
+        radius = (4 * (denting_z ** 2) + ((self.wz/np.cos(35/(np.pi*180))*2)** 2)) / (
+                8 * denting_z)
         return radius
 
     def focal_lens_constant(self):
@@ -71,13 +92,24 @@ class GaussianSecondLensSingleValue:
     def focal_lens_of_wz(self):
         # print( self.radius_of_lens_and_beamwaist(), 'radius for z:', self.z, self.wz, 'wz')
         self.f = self.radius_of_lens_and_beamwaist() / 2
-        name1 = 'focalL(w(z)), Dmax:' + str(self.denting_depth)
+        name1 = 'f (w(z), IL(wz)), Dmax:' + str(self.denting_depth)
+        return self.f
+
+    def focal_lens_of_wz_tauL(self):
+        # print( self.radius_of_lens_and_beamwaist(), 'radius for z:', self.z, self.wz, 'wz')
+        self.f = self.radius_of_lens_and_beamwaist_and_intensity_and_chirp() / 2
+        name1 = 'f (w(z), IL(wz), tauL), Dmax:' + str(self.denting_depth)
         return self.f
 
     def choose_f_dependency(self, switch):
-        if switch == True:
+        if switch == "wzIL":
             self.f = self.focal_lens_of_wz()
             print(self.f, 'wz dependent focal lens')
+
+        elif switch == "wzILtauChirp":
+            self.f = self.focal_lens_of_wz_tauL()
+            print(self.f, 'wz dependent focal lens, IL dependent with chirp')
+
         else:
             self.f = self.focal_lens_constant()
             print(self.f, 'constant focal length')
@@ -105,11 +137,10 @@ class GaussianSecondLensSingleValue:
         new_wz_harmonic = ((1 - v_single / self.f) ** 2) + (1 / self.q ** 2) * (
                 self.z + v_single * (1 - (self.z / self.f))) ** 2
         new_wz_harmonic = self.w0 * (new_wz_harmonic ** 0.5)
-        # print(new_wz_harmonic, v_single)
+        print("w0(N)", new_wz_harmonic, "focal position:" ,v_single)
         return new_wz_harmonic
 
     def new_divergence_from_w0_new(self, w_new):
-
         return self.lambdaL / (self.harmonic_number * math.pi * w_new)
 
     def switch_sign(self, var):
@@ -117,33 +148,35 @@ class GaussianSecondLensSingleValue:
 
     def resulting_divergence_over_harmonic_number(self):
         result_w0_new = np.zeros([len(self.harmonic_number_array)])
-
         result_div_harmonic_number = np.zeros([len(self.harmonic_number_array)])
-
         for x in range(0, len(self.harmonic_number_array)):
             self.harmonic_number = self.harmonic_number_array[x]
             # self.q_initial()
             # print(self.f, 'focal length')
+            print(x,"harmonic number")
+
             result_w0_new[x] = self.new_beam_waist_single_value()
             result_div_harmonic_number[x] = self.new_divergence_from_w0_new(result_w0_new[x])
 
-        name1 = 'z: ' + str(self.z) + '[mm]  lens+'
+        name1 = 'z: ' + str(self.z) + ' mm'
 
         plt.figure(10)
         plt.plot(self.harmonic_number_array, result_w0_new, label=name1 + 'w(harmonic_number)')
-        plt.xlabel = 'harmonic_number'
-        plt.ylabel = 'w0(harmonic_number)* in [mm]'
+        plt.xlabel( 'harmonic_number N')
+        plt.ylabel ( 'w0(N) [mm]')
         plt.legend()
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 
         plt.figure(9)
-        plt.plot(self.harmonic_number_array, result_div_harmonic_number, label=name1 + 'div detctor', marker='.')
-        plt.xlabel = 'harmonic_number'
-        plt.ylabel = 'div in [rad]'
+        plt.plot(self.harmonic_number_array, 1E3*result_div_harmonic_number, label=name1 , marker='.')
+        plt.xlabel ('harmonic_number N')
+        plt.ylabel ('divergence 1/e half angle [mrad]')
+        plt.xlim(16, 27)
+        #plt.ylim(1, 10)
+        plt.yscale("log")
+        plt.hlines(xmin=16, xmax=27, y=4, alpha=0.3, label="detector limit")
+        plt.title("compressed pulse")
         plt.legend()
-        # plt.yscale ('log')
-        # plt.ylim(0.001,0.006)
-        # zip the 2 arrays to get the exact coordinates
 
     # index = list(zip(index[0])
 
@@ -153,34 +186,41 @@ class GaussianSecondLensSingleValue:
         for x in range(0, 30 - 1):
             # halfangle
             N_list[x] = 1 + x
-            N_diffraction_limit[x] = (60. / 1500.) / (1 + x)
+            N_diffraction_limit[x] = (70. / 1500.) / (1 + x)
 
         plt.figure(9)
-        plt.scatter(N_list, N_diffraction_limit, marker="o", color="c", label="Theta_L/harmonic_number")
-        plt.hlines(0.007, 0, 30, label="detector limit")
+        plt.scatter(N_list, N_diffraction_limit*1E3, marker="o", color="c", label="Theta_L/N", alpha = 0.4)
+        #plt.hlines(0.006*1E3, 0.005*1E3, 30, label="detector limit")
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 
         # plt.savefig("20190123_divergence_mrad_halfangle_and_theo" +".png",  bbox_inches="tight", dpi = 1000)
 
-
-Test = GaussianSecondLensSingleValue(0.012, 0.0008, 0, 0.00005)
+#Denting has to be given in mm
+# experimental beamwaist for fundamental: in mm
+w0 = 0.011
+D0 = 0.00011
+Test = GaussianSecondLensSingleValue(w0, 0.0008, 0, D0)
 Test.resulting_divergence_over_harmonic_number()
-Test = GaussianSecondLensSingleValue(0.012, 0.0008, -1, 0.00005)
+Test = GaussianSecondLensSingleValue(w0, 0.0008, -1.0,D0)
 Test.resulting_divergence_over_harmonic_number()
-Test = GaussianSecondLensSingleValue(0.012, 0.0008, -2, 0.00005)
+Test = GaussianSecondLensSingleValue(w0, 0.0008, -1.6, D0)
 Test.resulting_divergence_over_harmonic_number()
-Test = GaussianSecondLensSingleValue(0.012, 0.0008, -3, 0.00005)
+Test = GaussianSecondLensSingleValue(w0, 0.0008, -2.0, D0)
+Test.resulting_divergence_over_harmonic_number()
+Test = GaussianSecondLensSingleValue(w0, 0.0008, -2.8, D0)
+Test.resulting_divergence_over_harmonic_number()
+Test = GaussianSecondLensSingleValue(w0, 0.0008, -3.2, D0)
+Test.resulting_divergence_over_harmonic_number()
+Test = GaussianSecondLensSingleValue(w0, 0.0008, -3.6, D0)
 Test.resulting_divergence_over_harmonic_number()
 Test.plot_diffraction_limit()
 
+#plt.xlabel('harmonic number N')
+#plt.ylabel('divergence half angle 1/e [mrad]')
 
-
-# plt.savefig("caseII_div_over_N_50nm" + ".png", bbox_inches="tight", dpi=1000)
-
-plt.legend()
-plt.xlim(1, 28)
 
 plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+plt.savefig("20220303_angle_correction_compressed pulse" + ".png", bbox_inches="tight", dpi=1000)
 plt.show()
 
 # Test3.resulting_divergence_over_N(2.5)
