@@ -61,7 +61,7 @@ class GaussianSecondLensSingleValue:
         wz = np.zeros([len(test)])
         wz[::] = self.beam_waist_of_z_value(test[::])
         plt.figure(1)
-        plt.plot(test,wz, label = "w(z,N) with sourcesize = w0 ")
+        plt.plot(test,wz, label = "w(z) with M2 ")
         plt.legend()
         #plt.show()
 
@@ -71,25 +71,6 @@ class GaussianSecondLensSingleValue:
         # can be used is not used now
         zr = math.pi * self.w0 ** 2 / (self.lambdaL / self.harmonic_number)
         wz_harmonic = self.w0 * (1 + (self.z / zr) ** 2) ** 0.5
-        return wz_harmonic
-
-    def test_beam_waist2(self):
-        plt.title("beamwaist w(z,N)_N="+str(self.harmonic_number))
-        test = np.linspace(-5,5,1000)
-        wz = np.zeros([len(test)])
-        wz[::] = self.beam_waist_of_z_harmonic_scaling_wN(test[::])
-        plt.figure(1)
-        plt.plot(test,wz, label = "w(z) with source size dependency ")
-        plt.legend()
-        #plt.show()
-
-    def beam_waist_of_z_harmonic_scaling_wN(self,z):
-        # definition of rayleigh length - which would scale with 1/harmonic_number
-        # can be used is not used now
-        wz= self.w0/self.harmonic_number
-        zr = math.pi * (wz ** 2) / (self.lambdaL / self.harmonic_number)
-        wz_harmonic = wz * (1 + (z / zr) ** 2) ** 0.5
-
         return wz_harmonic
 
     def radius_of_lens(self):
@@ -104,7 +85,7 @@ class GaussianSecondLensSingleValue:
         #assumes denting ~ a0 ~ (IL ** 0.5) ~ (w0**2/wz**2)**0.5
         # factor = (tauL/tauChirped)
         factor = (25/ 120) ** 0.5
-        #print("intensity reduction by chirp:", factor**2)
+        print("intensity reduction by chirp:", factor**2)
         denting_z = (self.denting_depth * ((self.w0_fundamental) / ((self.wz))) *factor)
         radius = (4 * (denting_z ** 2) + ((self.wz/np.cos(35/(np.pi*180))*2)** 2)) / (
                 8 * denting_z)
@@ -124,6 +105,8 @@ class GaussianSecondLensSingleValue:
         self.f = self.radius_of_lens_and_beamwaist_and_intensity_and_chirp() / 2
         name1 = 'f (w(z), IL(wz), tauL), Dmax:' + str(self.denting_depth)
         return self.f
+
+
 
 
     def choose_f_dependency(self, switch):
@@ -149,33 +132,23 @@ class GaussianSecondLensSingleValue:
         return AA / BB
 
 
-    # second model that is Vincenti like follows here
-    def new_focal_position_wz_N_dependence_of_q(self, index_z):
+#alle need to be changed to z-Dependency
+    def new_focal_position_wz(self, index_z):
+        #sets self.q for given harmonic number - with initial beamwaist is w0(z)
+        self.q = self.q_initial()/self.harmonic_number
         AA = (self.q ** 2 / self.f) - self.z[index_z] * (1 - self.z[index_z] / self.f)
         BB = (self.q ** 2 / self.f ** 2) + (1 - self.z[index_z] / self.f) ** 2
         # print(self.harmonic_number, 'new v', AA / BB)
-        #print('single value for harmonic_number:', self.harmonic_number, 'new focal position', AA/BB)
+        print('single value for harmonic_number:', self.harmonic_number, 'new focal position', AA/BB)
         return AA / BB
 
-    #this relies on q(N) as well
     def new_beam_waist_single_value(self, index_z):
         # print('initial beamwaist', self.w0, 'for single value and harmonic_number:', self.harmonic_number)
-        v_single = self.new_focal_position_wz_N_dependence_of_q(index_z)
+        v_single = self.new_focal_position_wz(index_z)
         new_wz_harmonic = ((1 - v_single / self.f) ** 2) + (1 / self.q ** 2) * (
                 self.z[index_z] + v_single * (1 - (self.z[index_z] / self.f))) ** 2
         new_wz_harmonic = self.w0 * (new_wz_harmonic ** 0.5)
-        #print("w0(N)", new_wz_harmonic, "focal position:" ,v_single)
-        return new_wz_harmonic
-
-    def new_beam_waist_single_value_vincenti(self, index_z):
-
-        # print('initial beamwaist', self.w0, 'for single value and harmonic_number:', self.harmonic_number)
-        wz_harmonic = self.w0/self.harmonic_number
-        v_single = self.new_focal_position_wz_N_dependence_of_q(index_z)
-        new_wz_harmonic = ((1 - v_single / self.f) ** 2) + (1 / self.q ** 2) * (
-                self.z[index_z] + v_single * (1 - (self.z[index_z] / self.f))) ** 2
-        new_wz_harmonic = wz_harmonic  * (new_wz_harmonic ** 0.5)
-        #print("w0(N)", new_wz_harmonic, "focal position:" ,v_single)
+        print("w0(N)", new_wz_harmonic, "focal position:" ,v_single)
         return new_wz_harmonic
 
     def new_divergence_from_w0_new(self, w_new):
@@ -187,8 +160,8 @@ class GaussianSecondLensSingleValue:
     def focal_lens_wz_tauL_z_scan(self):
         for x in range(0,len(self.z)):
             self.beam_waist_of_z_value(self.z[x])
-            #print(self.q)
-            #print(self.wz, "beamwaist", "for N:", self.harmonic_number, "at position z:", self.z[x])
+            print(self.wz, "beamwaist")
+        #calculates the denting depth from w0(z) and then the focal length
 
             self.focal_lenght_wz_tauL[x]=self.focal_lens_of_wz_tauL()
             self.focal_lenght_wz[x] = self.focal_lens_constant()
@@ -199,44 +172,43 @@ class GaussianSecondLensSingleValue:
         plt.plot(self.z, self.focal_lenght_wz_tauL, label ="focal lens of z")
         plt.plot(self.z, self.focal_lenght, label ="focal lens const")
         plt.legend()
+        plt.show()
 
         return self.focal_lenght_wz_tauL, self.focal_lenght_wz, self.focal_lenght
 
 # needs to be change over z with constant harmonic number
-    def resulting_divergence_over_harmonic_number_Vincenti(self):
+    def resulting_divergence_over_harmonic_number(self):
 
         result_w0_new = np.zeros([len(self.z)])
         result_div_harmonic_number = np.zeros([len(self.z)])
-        #sets self.q for given harmonic number - with initial beamwaist is w0(z)
-        self.q = self.q_initial()/(self.harmonic_number **2)
-        self.test_beam_waist2()
-        #print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx q xxxxxxxxx", self.q)
         self.focal_lens_wz_tauL_z_scan()
 
+
+
         for x in range(0, len(self.z)):
+            #self.beam_waist_of_z_value(self.z[x])
 
             self.f = self.focal_lenght_wz_tauL[x]
             # print(self.f, 'focal length')
-            print(self.q)
-            #print(self.z[x],"z position in mm")
-            result_w0_new[x] = self.new_beam_waist_single_value_vincenti(x)
+            print(self.z[x],"z position in mm")
+            result_w0_new[x] = self.new_beam_waist_single_value(x)
 
             result_div_harmonic_number[x] = self.new_divergence_from_w0_new(result_w0_new[x])
-            #print(result_div_harmonic_number[x], "divergence at this position of harmonic")
+            print(result_div_harmonic_number[x], "divergence at this position of harmonic")
 
         plt.figure(10)
-        plt.title("N"+str(self.harmonic_number))
-        plt.plot(self.z, result_w0_new/self.w0, label = "w0(N)/w0(L)")
+        plt.title("N"+str(self.harmonic_number)+" w0(N,z)")
+        plt.plot(self.z, result_w0_new/self.wz)
         plt.xlabel( 'z in mm relative to focal position')
-        plt.ylabel ( 'w0(N,z)/w0 [mm]')
+        plt.ylabel ( 'w0(N,z)/wz [mm]')
         plt.legend()
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 
         plt.figure(9)
         plt.title("N"+str(self.harmonic_number)+" divergence")
-        plt.plot(self.z, result_div_harmonic_number/(60/1500), label="Vincenti like")
+        plt.plot(self.z, result_div_harmonic_number/(60/1500))
         plt.xlabel ('z in mm relative to focal position')
-        plt.ylabel ('Theta(N)/Theta(L) ')
+        plt.ylabel ('Theta(N)/Theta(L) wz tauL')
         #plt.xlim(16.5, 28)
         #plt.ylim(1,10)
         #plt.ylim(1, 10)
@@ -244,29 +216,23 @@ class GaussianSecondLensSingleValue:
         plt.yscale("log")
         plt.legend()
 
-    def resulting_divergence_over_harmonic_number_julia(self):
 
-        result_w0_new = np.zeros([len(self.z)])
-        result_div_harmonic_number = np.zeros([len(self.z)])
-        self.q = self.q_initial()
-        self.focal_lens_wz_tauL_z_scan()
         for i in range(0, len(self.z)):
+            #self.beam_waist_of_z_value(self.z[x])
 
-        # difference to the above model is: the function self.focal_length
-        #
-            self.f = self.focal_lenght_wz_tauL[i]
+            self.f = self.focal_lenght[i]
             print(self.f, 'focal length')
             print(self.z[i],"z position in mm")
             result_w0_new[i] = self.new_beam_waist_single_value(i)
 
             result_div_harmonic_number[i] = self.new_divergence_from_w0_new(result_w0_new[i])
-            #print(result_div_harmonic_number[i], "divergence at this position of harmonic")
+            print(result_div_harmonic_number[i], "divergence at this position of harmonic")
 
         plt.figure(9)
         plt.title("N"+str(self.harmonic_number)+" divergence")
-        plt.plot(self.z, result_div_harmonic_number/(60/1500), label = "Julia")
+        plt.plot(self.z, result_div_harmonic_number/(60/1500))
         plt.xlabel ('z in mm relative to focal position')
-        plt.ylabel ('Theta(N)/Theta(L)')
+        plt.ylabel ('Theta(N)/Theta(L)  const')
         #plt.xlim(16.5, 28)
         #plt.ylim(1,10)
         #plt.ylim(1, 10)
@@ -283,15 +249,21 @@ class GaussianSecondLensSingleValue:
 
 
 
+    def plot_diffraction_limit(self):
+        plt.figure(9)
+        plt.hlines(xmin=-4, xmax= 4, y=1E3*(60/1500)/self.harmonic_number, label="detector limit")
+        plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+
+        # plt.savefig("20190123_divergence_mrad_halfangle_and_theo" +".png",  bbox_inches="tight", dpi = 1000)
+
 #Denting has to be given in mm
 # experimental beamwaist for fundamental: in mm
 w0 = 0.011
 D0 = 0.0001
 Test = GaussianSecondLensSingleValue(w0, 0.0008, D0, 'tab:grey', marker = ".")
-Test.resulting_divergence_over_harmonic_number_julia()
-Test.resulting_divergence_over_harmonic_number_Vincenti()
+Test.resulting_divergence_over_harmonic_number()
 
-
+Test.plot_diffraction_limit()
 
 #plt.xlabel('harmonic number N')
 #plt.ylabel('divergence half angle 1/e [mrad]')
@@ -299,7 +271,7 @@ Test.resulting_divergence_over_harmonic_number_Vincenti()
 plt.figure(9)
 
 plt.legend(bbox_to_anchor=(1.05, 1), loc=4, borderaxespad=0.)
-plt.savefig("20230701_div_N25Oversion_q_of_wN" + ".png", bbox_inches="tight", dpi=1000)
+plt.savefig("20230701_div_N25Overz" + ".png", bbox_inches="tight", dpi=1000)
 plt.show()
 
 # Test3.resulting_divergence_over_N(2.5)
