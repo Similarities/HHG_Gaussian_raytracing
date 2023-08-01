@@ -43,6 +43,10 @@ class GaussianSecondLensSingleValue:
         self.q = (self.w0 ** 2) * math.pi / (self.lambdaL / self.harmonic_number)
         return self.q
 
+    def q_initial_vincenti(self):
+        self.q = (self.beam_waist_of_z_harmonic_scaling_wN(0) ** 2) * math.pi / (self.lambdaL / self.harmonic_number)
+        return self.q
+
 
     def rayleigh_length(self):
         # remains Ry as fundamental
@@ -86,9 +90,10 @@ class GaussianSecondLensSingleValue:
     def beam_waist_of_z_harmonic_scaling_wN(self,z):
         # definition of rayleigh length - which would scale with 1/harmonic_number
         # can be used is not used now
-        wz= self.w0/self.harmonic_number
-        zr = math.pi * (wz ** 2) / (self.lambdaL / self.harmonic_number)
-        wz_harmonic = wz * (1 + (z / zr) ** 2) ** 0.5
+        #former wN = self.w0/self.harmonic_number
+        wN= self.w0*(0.72-9*self.harmonic_number*10**-3)
+        zr = math.pi * (wN ** 2) / (self.lambdaL / self.harmonic_number)
+        wz_harmonic = wN * (1 + (z / zr) ** 2) ** 0.5
 
         return wz_harmonic
 
@@ -170,7 +175,9 @@ class GaussianSecondLensSingleValue:
     def new_beam_waist_single_value_vincenti(self, index_z):
 
         # print('initial beamwaist', self.w0, 'for single value and harmonic_number:', self.harmonic_number)
-        wz_harmonic = self.w0/self.harmonic_number
+        #wz_harmonic = self.w0/self.harmonic_number
+        wz_harmonic = self.beam_waist_of_z_harmonic_scaling_wN(0)
+        self.q = self.q_initial_vincenti()
         v_single = self.new_focal_position_wz_N_dependence_of_q(index_z)
         new_wz_harmonic = ((1 - v_single / self.f) ** 2) + (1 / self.q ** 2) * (
                 self.z[index_z] + v_single * (1 - (self.z[index_z] / self.f))) ** 2
@@ -207,8 +214,8 @@ class GaussianSecondLensSingleValue:
 
         result_w0_new = np.zeros([len(self.z)])
         result_div_harmonic_number = np.zeros([len(self.z)])
-        #sets self.q for given harmonic number - with initial beamwaist is w0(z)
-        self.q = self.q_initial()/(self.harmonic_number **2)
+        #self.q = self.q_initial()/(self.harmonic_number **2)
+        self.q = self.q_initial_vincenti()
         self.test_beam_waist2()
         #print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx q xxxxxxxxx", self.q)
         self.focal_lens_wz_tauL_z_scan()
@@ -217,7 +224,7 @@ class GaussianSecondLensSingleValue:
 
             self.f = self.focal_lenght_wz_tauL[x]
             # print(self.f, 'focal length')
-            print(self.q)
+            # print(self.q)
             #print(self.z[x],"z position in mm")
             result_w0_new[x] = self.new_beam_waist_single_value_vincenti(x)
 
