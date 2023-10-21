@@ -271,7 +271,7 @@ class GaussianSecondLensSingleValue:
 
         plt.figure(9)
         plt.title("N"+str(self.harmonic_number)+" divergence")
-        plt.plot(self.z, result_div_harmonic_number/(60/1500), label = "Julia")
+        plt.plot(self.z, result_div_harmonic_number/(60/1500), label = "w(N)(z)=w(L)(z)")
         plt.xlabel ('z in mm relative to focal position')
         plt.ylabel ('Theta(N)/Theta(L)')
         #plt.xlim(16.5, 28)
