@@ -26,3 +26,6 @@ focalLength = 1500
 
 waist0 = (2 * lambdaL / math.pi) * focalLength / diameter
 print("w0 theo without M^2 by divergence", waist0)
+
+a0= ((6*1E19*(lambdaL)**2 )/(1.38*1E18))**0.5
+print("a0 for 6x10^19W/cm12", a0)
