@@ -133,30 +133,31 @@ class GaussianBeamSecondLens:
 # case_selection: select:1 for ini7ial beamwaist scales with 1/harmonic number, select 2: for beamwaist of harmonic is just beamwaist fundamental (scales sourcesize 1/harmonic_number)
 # choose the dependency of the focal length function : 'w0_aperture_and_IL_dependent', 'w0_aperture_dependent' or False
 
+#w0 [mm], lambda[mm], a0, DentingDepth[mm].
 
-Test = GaussianBeamSecondLens(0.007, 0.0008, 5, 0.00002, "c")
+Test = GaussianBeamSecondLens(0.007, 0.0008, 10, 0.0005, "c")
 Test.choose_focal_length_dependency('w0_apertur_and_IL_and_chirp_dependent')
 
 
-Test2 = GaussianBeamSecondLens(0.007, 0.0008, 5, 0.00002, "c")
+Test2 = GaussianBeamSecondLens(0.007, 0.0008, 10, 0.0005, "c")
 Test2.choose_focal_length_dependency('w0_aperture_and_IL_dependent')
 
-Test2 = GaussianBeamSecondLens(0.007, 0.0008, 5, 0.00002, "c")
+Test2 = GaussianBeamSecondLens(0.007, 0.0008, 10, 0.0005, "c")
 Test2.choose_focal_length_dependency('w0_aperture_dependent')
 
-Test = GaussianBeamSecondLens(0.007, 0.0008, 5, 0.000050, "b")
+Test = GaussianBeamSecondLens(0.007, 0.0008, 10, 0.00050, "b")
 Test.choose_focal_length_dependency('w0_apertur_and_IL_and_chirp_dependent')
 
 
-Test2 = GaussianBeamSecondLens(0.007, 0.0008, 5, 0.000050, "b")
+Test2 = GaussianBeamSecondLens(0.007, 0.0008, 10, 0.0010, "b")
 Test2.choose_focal_length_dependency('w0_aperture_and_IL_dependent')
 
-Test2 = GaussianBeamSecondLens(0.007, 0.0008, 5, 0.000050, "b")
+Test2 = GaussianBeamSecondLens(0.007, 0.0008, 10, 0.00100, "b")
 Test2.choose_focal_length_dependency('w0_aperture_dependent')
 
 plt.yscale("log")
 plt.legend()
 plt.xlim(-4,4)
 plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-plt.savefig("plasma_lens" + ".png", bbox_inches="tight", dpi=1000)
+plt.savefig("plasma_lens_units_a0_10_D0.5um_1um" + ".png", bbox_inches="tight", dpi=1000)
 plt.show()

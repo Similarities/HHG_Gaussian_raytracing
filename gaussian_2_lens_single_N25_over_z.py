@@ -208,6 +208,15 @@ class GaussianSecondLensSingleValue:
         plt.legend()
 
         return self.focal_lenght_wz_tauL, self.focal_lenght_wz, self.focal_lenght
+    
+
+
+    def save_data(self,array_x, array_y):
+        result = np.hstack((array_x, array_y))
+        print('saved data')
+        np.savetxt("Fig3_div_overN_theo" + '_' + "20240531" + ".txt", result, delimiter=' ',
+                   header='string', comments='',
+                   fmt='%s')
 
 # needs to be change over z with constant harmonic number
     def resulting_divergence_over_harmonic_number_Vincenti(self):
@@ -230,6 +239,8 @@ class GaussianSecondLensSingleValue:
 
             result_div_harmonic_number[x] = self.new_divergence_from_w0_new(result_w0_new[x])
             #print(result_div_harmonic_number[x], "divergence at this position of harmonic")
+            
+        self.save_data(self.z, result_div_harmonic_number)
 
         plt.figure(10)
         plt.title("N"+str(self.harmonic_number))
@@ -241,7 +252,7 @@ class GaussianSecondLensSingleValue:
 
         plt.figure(9)
         plt.title("N"+str(self.harmonic_number)+" divergence")
-        plt.plot(self.z, result_div_harmonic_number/(60/1500), label="Vincenti like")
+        plt.plot(self.z, result_div_harmonic_number/(60/1500), label="div over N_vincenti_like")
         plt.xlabel ('z in mm relative to focal position')
         plt.ylabel ('Theta(N)/Theta(L) ')
         #plt.xlim(16.5, 28)
@@ -306,7 +317,7 @@ Test.resulting_divergence_over_harmonic_number_Vincenti()
 plt.figure(9)
 
 plt.legend(bbox_to_anchor=(1.05, 1), loc=4, borderaxespad=0.)
-plt.savefig("20230701_div_N25Oversion_q_of_wN" + ".png", bbox_inches="tight", dpi=1000)
+plt.savefig("test_" + ".png", bbox_inches="tight", dpi=1000)
 plt.show()
 
 # Test3.resulting_divergence_over_N(2.5)
