@@ -11,8 +11,8 @@ class GaussianSecondLensSingleValue:
 
         print('xxxxxxxx run with denting_depth: ' + str(denting_depth) + 'xxxxxxx')
         self.w0 = w0
-        print("input angle in pi", np.cos(35/180*np.pi))
-        print("increase of w0 by angle", 1/(np.cos(35/180*np.pi)))
+        print("input angle in pi", np.cos(45/180*np.pi))
+        print("increase of w0 by angle", 1/(np.cos(45/180*np.pi)))
         self.w0_fundamental = w0
         self.harmonic_number = 1
         self.lambdaL = lambdaL  # fundamental!!!
@@ -126,7 +126,7 @@ class GaussianSecondLensSingleValue:
         return AA / BB
 
     def new_focal_position_wz(self):
-        self.q = self.q_initial()
+        self.q_initial()
         AA = (self.q ** 2 / self.f) - self.z * (1 - self.z / self.f)
         BB = (self.q ** 2 / self.f ** 2) + (1 - self.z / self.f) ** 2
         # print(self.harmonic_number, 'new v', AA / BB)
@@ -174,7 +174,7 @@ class GaussianSecondLensSingleValue:
         plt.xlabel ('harmonic number [N]')
         plt.ylabel ('w0(z,N) divergence [mrad]')
         plt.xlim(16.5, 28)
-        plt.ylim(1,10)
+        plt.ylim(1,300)
         #plt.ylim(1, 10)
         plt.title("chirped pulse")
         plt.yscale("log")
@@ -188,7 +188,7 @@ class GaussianSecondLensSingleValue:
         for x in range(0, 30 - 1):
             # halfangle
             N_list[x] = 1 + x
-            N_diffraction_limit[x] = (60. / 1500.) / (1 + x)
+            N_diffraction_limit[x] = (60. / 120.) / (1 + x)
 
         plt.figure(9)
         plt.scatter(N_list, N_diffraction_limit*1E3, marker="o", color="c", label="Theta_L/N", alpha = 0.4)
@@ -199,21 +199,21 @@ class GaussianSecondLensSingleValue:
 
 #Denting has to be given in mm
 # experimental beamwaist for fundamental: in mm
-w0 = 0.011
-D0 = 0.0001
+w0 = 0.003
+D0 = 0.0002
 Test = GaussianSecondLensSingleValue(w0, 0.0008, 0, D0, 'tab:grey', marker = ".")
 Test.resulting_divergence_over_harmonic_number()
-Test = GaussianSecondLensSingleValue(w0, 0.0008, -1.0,D0, 'tab:green', marker = ".")
+Test = GaussianSecondLensSingleValue(w0, 0.0008, 0.08,D0, 'tab:green', marker = ".")
 Test.resulting_divergence_over_harmonic_number()
-Test = GaussianSecondLensSingleValue(w0, 0.0008, -1.6, D0, 'tab:blue', marker = "o")
+Test = GaussianSecondLensSingleValue(w0, 0.0008, 0.14, D0, 'tab:blue', marker = "o")
 Test.resulting_divergence_over_harmonic_number()
-Test = GaussianSecondLensSingleValue(w0, 0.0008, -2.0, D0, 'tab:purple', marker ="s")
+Test = GaussianSecondLensSingleValue(w0, 0.0008, 0.2, D0, 'tab:purple', marker ="s")
 Test.resulting_divergence_over_harmonic_number()
-Test = GaussianSecondLensSingleValue(w0, 0.0008, -2.8, D0, 'tab:pink', marker = "*")
+Test = GaussianSecondLensSingleValue(w0, 0.0008, 0.3, D0, 'tab:pink', marker = "*")
 Test.resulting_divergence_over_harmonic_number()
-Test = GaussianSecondLensSingleValue(w0, 0.0008, -3.2, D0, 'tab:red', marker = "P")
+Test = GaussianSecondLensSingleValue(w0, 0.0008, 0.4, D0, 'tab:red', marker = "P")
 Test.resulting_divergence_over_harmonic_number()
-Test = GaussianSecondLensSingleValue(w0, 0.0008, -3.6, D0, 'tab:orange', marker = "v")
+Test = GaussianSecondLensSingleValue(w0, 0.0008, 0.5, D0, 'tab:orange', marker = "v")
 Test.resulting_divergence_over_harmonic_number()
 Test.plot_diffraction_limit()
 
@@ -221,9 +221,10 @@ Test.plot_diffraction_limit()
 #plt.ylabel('divergence half angle 1/e [mrad]')
 
 plt.figure(9)
+plt.title("f2, D0=200nm, chirped pulse, Ry= 80um, w0=3um")
 plt.hlines(xmin=16, xmax=28, y=4, alpha=0.3, label="detector limit")
-plt.legend(bbox_to_anchor=(1.05, 1), loc=4, borderaxespad=0.)
-plt.savefig("20230701_scaling_" + ".png", bbox_inches="tight", dpi=1000)
+plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+plt.savefig("2022_f2_chirped_pulse_D200nm" + ".png", bbox_inches="tight", dpi=1000)
 plt.show()
 
 # Test3.resulting_divergence_over_N(2.5)
