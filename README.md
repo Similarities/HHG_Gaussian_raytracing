@@ -10,7 +10,7 @@ high harmonic radiation with mulitple frequencies of the fundamental freuqency i
 emitted.
 
 For the special case of solid dense - laser high harmonic creation, 
-the interaction is based on the Relativistic Mirror Model, where a 
+the interaction is based on the Relativistic Mirror Model (ROM), where a 
 sufficient strong laser creates a plasma on the solid surface with which
 the rest of the laser pulse interacts. Electrons in the density gradient
 of the plasma surface are accelerated by the laser and form an 
@@ -21,12 +21,13 @@ pulse bandwidth to a quasi continuum like distribution). This
 creates a pulse train over the driving laser pulse, where each pulse
 train member has a significant smaller pulse duration (< 0.5 laser cycle).
 On a detector with a integration time that is much longer the driving
-laser pulse duration (electronic switching can NOT resolve fs or as!!!)
+laser pulse duration
 each pulse of the pulse train is integrated, that by the uncertainty
 relation leads to an interference on the detector (cf. SPIDER measurment
 method) - where the interference can be described as modulation with
 the laser cycle duration (once per cycle) that in the spectrum is found
 as high harmonics of the fundamental frequency (or 1/N in wavelength).
+
 
 This raytracing script tries to model high-harmonic gaussian beam creation close
 and in the laser focal region. It focuses only on the spatial characteristics
@@ -51,5 +52,5 @@ the highfield laser community: M^2, Rayleigh-Length, hole boring velocity,
 w0 for gaussian beams, Denting depth of a plasma surface, scaling laws. 
 
 
-Python 3.6 ... mathematical details will follow sooon
+Python 3.6 ... mathematical details will follow if someone is asking for it ;)
 
